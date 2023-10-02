@@ -1,0 +1,140 @@
+service: phoneforyou-products-service
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  timeout: 15
+  memorySize: 512
+  region: eu-central-1
+
+plugins:
+  - serverless-s3-deploy
+  - serverless-s3-cleaner
+custom:
+  stage: dev
+  openApiBucketName: phoneforyou-openapi
+  assets:
+    targets:
+      - bucket: !Ref SwaggerBucket
+        files:
+          - source: openapi
+            empty: true
+            globs: "**/*"
+  serverless-s3-cleaner:
+    buckets:
+      - ${self:custom.openApiBucketName}
+package:
+  individually: true
+  exclude:
+    - ./**
+
+functions:
+  getProductsList:
+    handler: dist/src/handlers/getProductsList.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /products
+          method: GET
+          cors: false
+  getProductsById:
+    handler: dist/src/handlers/getProductsById.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /products/{id}
+          method: GET
+          cors: false
+
+resources:
+  Resources:
+    SwaggerBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.openApiBucketName}
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: ObjectWriter
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+    SwaggerParamsRequestValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: ParameterRequestValidator
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: false
+        ValidateRequestParameters: false
+    SwaggerRootResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+        RestApiId: !Ref ApiGatewayRestApi
+        PathPart: "openapi"
+    SwaggerProxyResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId: !Ref SwaggerRootResource
+        RestApiId: !Ref ApiGatewayRestApi
+        PathPart: "{proxy+}"
+    SwaggerRootMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        ResourceId: !Ref SwaggerRootResource
+        RestApiId: !Ref ApiGatewayRestApi
+        AuthorizationType: NONE
+        HttpMethod: ANY
+        Integration:
+          Type: HTTP_PROXY
+          IntegrationHttpMethod: ANY
+          Uri: http://${self:custom.openApiBucketName}.s3-website.${self:provider.region}.amazonaws.com
+          PassthroughBehavior: WHEN_NO_MATCH
+    SwaggerProxyMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        ResourceId: !Ref SwaggerProxyResource
+        RestApiId: !Ref ApiGatewayRestApi
+        AuthorizationType: NONE
+        HttpMethod: ANY
+        RequestParameters:
+          method.request.path.proxy: true
+        RequestValidatorId:
+          Ref: SwaggerParamsRequestValidator
+        Integration:
+          Type: HTTP_PROXY
+          IntegrationHttpMethod: ANY
+          Uri: http://${self:custom.openApiBucketName}.s3-website.${self:provider.region}.amazonaws.com/{proxy}
+          PassthroughBehavior: WHEN_NO_MATCH
+          RequestParameters:
+            integration.request.path.proxy: "method.request.path.proxy"
+    SwaggerS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: SwaggerBucket
+        PolicyDocument:
+          Statement:
+            - Sid: "AllowPublicReadAccess"
+              Effect: Allow
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::${self:custom.openApiBucketName}/*
+              Principal: "*"
+  Outputs:
+    SwaggerBucketOutput:
+      Description: Products service API endpoint
+      Value: !Ref SwaggerRootResource

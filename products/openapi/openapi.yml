@@ -1,0 +1,122 @@
+openapi: 3.0.0
+info:
+  title: Phone for you - Products service
+  description: API contains all products related endpoints
+  version: 1.0.0
+paths:
+  "/dev/products":
+    get:
+      tags:
+        - products
+      operationId: getProductsList
+      summary: Returns products list
+      description: Returns products by filters
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#components/schemas/List"
+                  - type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          $ref: "#components/schemas/Product"
+        "400":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          description: Internal server error
+          $ref: "#/components/responses/ErrorResponse"
+  "/dev/products/{productId}":
+    get:
+      tags:
+        - products
+      operationId: getProductsById
+      summary: Returns single product by id
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product item
+          content:
+            application/json:
+              schema:
+                $ref: "#components/schemas/Product"
+
+        "400":
+          description: Error on validation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Error message
+        "404":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          description: Internal server error
+          $ref: "#/components/responses/ErrorResponse"
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        price:
+          type: integer
+        title:
+          type: string
+      required:
+        - id
+        - price
+        - title
+    List:
+      type: object
+      properties:
+        limit:
+          type: number
+        offset:
+          type: number
+        total:
+          type: number
+    Error:
+      type: object
+      properties:
+        unknown:
+          type: string
+      required:
+        - success
+        - data
+  responses:
+    ErrorResponse:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  securitySchemes: {}
