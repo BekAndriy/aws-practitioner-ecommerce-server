@@ -1,0 +1,30 @@
+{
+    "root": true,
+    "env": {
+        "node": true,
+        "es2021": true
+    },
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "project": [
+            "./tsconfig.json"
+        ]
+    },
+    "rules": {},
+    "overrides": [
+        {
+            "extends": "standard-with-typescript",
+            "files": [
+                "./src/**/*.{ts,js}"
+            ],
+            "rules": {
+                "@typescript-eslint/promise-function-async": "off",
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/explicit-function-return-type": "off",
+                "@typescript-eslint/strict-boolean-expressions": "off",
+                "@typescript-eslint/prefer-nullish-coalescing": "off"
+            }
+        }
+    ]
+}
