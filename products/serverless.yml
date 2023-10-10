@@ -8,6 +8,11 @@ provider:
   timeout: 15
   memorySize: 512
   region: eu-central-1
+  environment:
+    DB_PRODUCTS_TABLE_NAME: !Ref DynamoDBProductsTable
+    DB_STOCKS_TABLE_NAME: !Ref DynamoDBStocksTable
+  iam:
+    role: DynamoDBPolicy
 
 plugins:
   - serverless-s3-deploy
@@ -43,7 +48,46 @@ functions:
       - http:
           path: /products
           method: GET
-          cors: false
+          cors: true
+  createProduct:
+    handler: dist/src/handlers/createProduct.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /products
+          method: POST
+          cors: true
+  updateProduct:
+    handler: dist/src/handlers/updateProduct.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /products/{id}
+          method: PUT
+          cors: true
+  deleteProduct:
+    handler: dist/src/handlers/deleteProduct.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /products/{id}
+          method: DELETE
+          cors: true
   getProductsById:
     handler: dist/src/handlers/getProductsById.handler
     url: true
@@ -56,10 +100,66 @@ functions:
       - http:
           path: /products/{id}
           method: GET
-          cors: false
+          cors: true
 
 resources:
   Resources:
+    DynamoDBProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: products
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          # primary key
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          # restrict reading from the unit till 5 req per second
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 1
+    DynamoDBStocksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: stocks
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          # primary key
+          - AttributeName: product_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          # restrict reading from the unit till 5 req per second
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 1
+    DynamoDBPolicy:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: LambdasDynamoDBAccess # required if you want to use 'serverless deploy --function' later on
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: dynamoDBAccess
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Query
+                    - dynamodb:Scan
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DeleteItem
+                  Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/*"
     SwaggerBucket:
       Type: AWS::S3::Bucket
       Properties:

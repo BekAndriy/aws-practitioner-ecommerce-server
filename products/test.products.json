@@ -1,0 +1,364 @@
+{
+    "products": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "a2b05523-f00b-4eac-a348-1e35e9f271d6"
+                    },
+                    "price": {
+                        "N": "1099"
+                    },
+                    "description": {
+                        "S": "The latest iPhone with cutting-edge technology."
+                    },
+                    "title": {
+                        "S": "iPhone 13 Pro"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "8bfde157-4c63-4e74-ae5f-3f5d4836b6a0"
+                    },
+                    "price": {
+                        "N": "899"
+                    },
+                    "description": {
+                        "S": "A powerful Android smartphone with a stunning display."
+                    },
+                    "title": {
+                        "S": "Samsung Galaxy S21"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "109f5aae-3c45-4b86-b6e7-9544ed9263e8"
+                    },
+                    "price": {
+                        "N": "799"
+                    },
+                    "description": {
+                        "S": "Google's flagship phone known for its exceptional camera."
+                    },
+                    "title": {
+                        "S": "Google Pixel 6"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "6851ed98-2d23-4a0f-9c7a-422a5947e723"
+                    },
+                    "price": {
+                        "N": "899"
+                    },
+                    "description": {
+                        "S": "A fast and feature-rich Android smartphone."
+                    },
+                    "title": {
+                        "S": "OnePlus 9 Pro"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "5cfe4f9a-8f05-467c-8a9e-07b5295d6b58"
+                    },
+                    "price": {
+                        "N": "599"
+                    },
+                    "description": {
+                        "S": "A budget-friendly phone with impressive performance."
+                    },
+                    "title": {
+                        "S": "Xiaomi Mi 11"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "c56bbff3-3d8a-4ad1-8501-154ad6bb405a"
+                    },
+                    "price": {
+                        "N": "1199"
+                    },
+                    "description": {
+                        "S": "Sony's flagship with a 4K display and excellent audio."
+                    },
+                    "title": {
+                        "S": "Sony Xperia 1 III"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "084e1933-4b88-4e47-8f56-77b5c856eb17"
+                    },
+                    "price": {
+                        "N": "449"
+                    },
+                    "description": {
+                        "S": "Affordable Google phone with great camera capabilities."
+                    },
+                    "title": {
+                        "S": "Google Pixel 5a"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "58e073ef-60f2-4ab3-882e-506a4963c6cf"
+                    },
+                    "price": {
+                        "N": "399"
+                    },
+                    "description": {
+                        "S": "A mid-range Samsung phone with a large AMOLED screen."
+                    },
+                    "title": {
+                        "S": "Samsung Galaxy A52"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "03dd5b21-15b2-4e84-af3e-e65e17c7db35"
+                    },
+                    "price": {
+                        "N": "499"
+                    },
+                    "description": {
+                        "S": "A value-packed OnePlus phone with 5G support."
+                    },
+                    "title": {
+                        "S": "OnePlus Nord 2"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "81dfad61-efce-45f2-9bf1-4bce72d0e5ce"
+                    },
+                    "price": {
+                        "N": "249"
+                    },
+                    "description": {
+                        "S": "A budget-friendly Xiaomi phone with a high-refresh-rate display."
+                    },
+                    "title": {
+                        "S": "Xiaomi Redmi Note 10"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "fd9d7b20-6c7f-4a0f-b3bf-60590bb4ad02"
+                    },
+                    "price": {
+                        "N": "399"
+                    },
+                    "description": {
+                        "S": "An affordable iPhone with modern internals."
+                    },
+                    "title": {
+                        "S": "iPhone SE (2020)"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "52c7cf48-46a4-4ae2-a147-3db07acab5a1"
+                    },
+                    "price": {
+                        "N": "349"
+                    },
+                    "description": {
+                        "S": "A compact and budget-friendly Google phone."
+                    },
+                    "title": {
+                        "S": "Google Pixel 4a"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "f0353dfb-4d2a-4ae2-b238-90e50f06e4bf"
+                    },
+                    "price": {
+                        "N": "1799"
+                    },
+                    "description": {
+                        "S": "A foldable smartphone with a flexible display."
+                    },
+                    "title": {
+                        "S": "Samsung Galaxy Z Fold 3"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "7f8ef88e-7850-447d-8905-c6d36512cf7a"
+                    },
+                    "price": {
+                        "N": "699"
+                    },
+                    "description": {
+                        "S": "A flagship-level OnePlus phone with a 120Hz display."
+                    },
+                    "title": {
+                        "S": "OnePlus 8T"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "57d53517-dc4e-48c4-9389-683f8ab0f2e2"
+                    },
+                    "price": {
+                        "N": "299"
+                    },
+                    "description": {
+                        "S": "A gaming-focused phone with a powerful processor."
+                    },
+                    "title": {
+                        "S": "Xiaomi Poco X3 Pro"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "8698c136-5e2e-4fb2-b5f1-7ed48e133bc7"
+                    },
+                    "price": {
+                        "N": "199"
+                    },
+                    "description": {
+                        "S": "A budget-friendly Motorola phone with a long-lasting battery."
+                    },
+                    "title": {
+                        "S": "Motorola Moto G Power (2021)"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "21471bea-9e3e-4ac6-8e02-18e1a173f6b4"
+                    },
+                    "price": {
+                        "N": "599"
+                    },
+                    "description": {
+                        "S": "A stylish LG smartphone with a sleek design."
+                    },
+                    "title": {
+                        "S": "LG Velvet"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "c0c9e6d2-e19b-42ec-9f49-33d31f7581d9"
+                    },
+                    "price": {
+                        "N": "249"
+                    },
+                    "description": {
+                        "S": "A reliable Nokia phone with a pure Android experience."
+                    },
+                    "title": {
+                        "S": "Nokia 5.4"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "b2677756-2499-47cc-8e1c-389d51e62b47"
+                    },
+                    "price": {
+                        "N": "899"
+                    },
+                    "description": {
+                        "S": "A gaming powerhouse with a high-refresh-rate AMOLED display."
+                    },
+                    "title": {
+                        "S": "ASUS ROG Phone 5"
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "id": {
+                        "S": "915a9309-daa2-45cc-af3c-7ca1e45d3d29"
+                    },
+                    "price": {
+                        "N": "699"
+                    },
+                    "description": {
+                        "S": "A mid-range Sony phone with 5G connectivity."
+                    },
+                    "title": {
+                        "S": "Sony Xperia 10 III"
+                    }
+                }
+            }
+        }
+    ]
+}

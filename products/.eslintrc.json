@@ -23,7 +23,14 @@
                 "@typescript-eslint/no-explicit-any": "off",
                 "@typescript-eslint/explicit-function-return-type": "off",
                 "@typescript-eslint/strict-boolean-expressions": "off",
-                "@typescript-eslint/prefer-nullish-coalescing": "off"
+                "@typescript-eslint/prefer-nullish-coalescing": "off",
+                "space-before-function-paren": "off",
+                "@typescript-eslint/space-before-function-paren": "off",
+                "indent": "off",
+                "@typescript-eslint/indent": [
+                    "error",
+                    2
+                ]
             }
         }
     ]
