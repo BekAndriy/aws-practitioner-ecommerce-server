@@ -34,6 +34,54 @@ paths:
         "500":
           description: Internal server error
           $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - products
+      operationId: createProduct
+      summary: Create product item
+      description: Create product and return product ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - price
+              properties:
+                title:
+                  type: string
+
+                description:
+                  type: string
+                count:
+                  type: integer
+                  minimum: 0
+                price:
+                  type: integer
+                  minimum: 1
+                  maximum: 999999
+      responses:
+        "200":
+          description: Product item ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                    format: uuid
+        "400":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          description: Internal server error
+          $ref: "#/components/responses/ErrorResponse"
   "/dev/products/{productId}":
     get:
       tags:
@@ -54,6 +102,106 @@ paths:
             application/json:
               schema:
                 $ref: "#components/schemas/Product"
+
+        "400":
+          description: Error on validation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Error message
+        "404":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          description: Internal server error
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - products
+      operationId: updateProduct
+      summary: Update product data
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - price
+              properties:
+                title:
+                  type: string
+
+                description:
+                  type: string
+                count:
+                  type: integer
+                  minimum: 0
+                price:
+                  type: integer
+                  minimum: 1
+                  maximum: 999999
+      responses:
+        "200":
+          description: Product item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+        "400":
+          description: Error on validation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Error message
+        "404":
+          description: Product not found
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          description: Internal server error
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - products
+      operationId: deleteProduct
+      summary: Removes product from DB
+      parameters:
+        - name: productId
+          in: path
+          description: Product ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
 
         "400":
           description: Error on validation.

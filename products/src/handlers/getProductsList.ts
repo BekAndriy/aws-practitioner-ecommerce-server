@@ -1,14 +1,24 @@
 import { type Handler } from 'aws-lambda'
-import { errorsHandler } from '../utils'
-import { getProducts } from '../mocks/products'
+import { errorsHandler, mapArray } from '../utils'
+import ProductDB from '../db/product'
+import ProductStockDB from '../db/productStock'
 
 const handlerCallback: Handler = async () => {
-  const obj = await getProducts()
+  const [products, stocks] = await Promise.all([
+    ProductDB.db.getItems(),
+    ProductStockDB.db.getItems()
+  ])
+  const mappedStocks = mapArray(stocks.items, 'productId')
+
+  const list = products.items.map((product) => ({
+    ...product,
+    count: mappedStocks.get(product.id)?.count || 0
+  }))
   return {
-    ...obj,
-    limit: obj.list.length,
+    list,
+    limit: list.length,
     offset: 0,
-    total: obj.list.length
+    total: list.length
   }
 }
 

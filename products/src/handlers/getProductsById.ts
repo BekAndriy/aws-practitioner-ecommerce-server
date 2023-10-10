@@ -1,20 +1,21 @@
 import { type APIGatewayProxyEvent } from 'aws-lambda'
-import { type Product } from '../models/product'
-import * as yup from 'yup'
-import { getProducts } from '../mocks/products'
-import { errorResponse, successResponse, executeHandlers, validateBySchemas } from '../utils'
+import { type ProductStock, type Product } from '../models/product'
+import { errorResponse, executeHandlers, validateBySchemas } from '../utils'
+import { validateIdSchema } from '../models/product'
+import ProductAndStockDB from '../db/productAndStock'
 
 interface Locals {
-  product: Product
+  product: Product & Pick<ProductStock, 'count'>
 }
 
-const findProduct = (products: Product[], productId: string) => products.find(({ id }) => id === productId)
+const schemaValidation = {
+  pathParameters: validateIdSchema
+}
 
 const validateProduct = async (event: APIGatewayProxyEvent, locals: Locals) => {
-  const mockedProducts = await getProducts()
-
   const { pathParameters } = event
-  const product = findProduct(mockedProducts.list, pathParameters.id)
+
+  const product = await ProductAndStockDB.db.getItem(pathParameters.id)
 
   if (!product) {
     return errorResponse({ id: 'Product not found' }, 404)
@@ -24,15 +25,11 @@ const validateProduct = async (event: APIGatewayProxyEvent, locals: Locals) => {
 }
 
 const handlerCallback = async (_event: APIGatewayProxyEvent, locals: Locals) => {
-  return successResponse(locals.product)
+  return locals.product
 }
 
 export const handler = executeHandlers(
-  validateBySchemas({
-    pathParameters: yup.object({
-      id: yup.string().required('Product not found').uuid()
-    }).required()
-  }),
+  validateBySchemas(schemaValidation),
   validateProduct,
   handlerCallback
 )
