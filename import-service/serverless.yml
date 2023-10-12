@@ -1,0 +1,197 @@
+service: phoneforyou-import-service
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  stage: dev
+  runtime: nodejs18.x
+  timeout: 15
+  memorySize: 512
+  region: eu-central-1
+  environment:
+    BUCKET_NAME: ${self:custom.BucketName}
+    BUCKET_REGION: ${self:provider.region}
+  iam:
+    role: ImportServicePolicy
+
+custom:
+  BucketName: aws-practitioner-import-service
+
+package:
+  individually: true
+  exclude:
+    - ./**
+
+functions:
+  importProductsFile:
+    handler: dist/src/handlers/importProductsFile.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - http:
+          path: /import
+          method: GET
+          cors: true
+          request:
+            parameters:
+              querystrings:
+                name: true
+  importFileParser:
+    handler: dist/src/handlers/importFileParser.handler
+    url: true
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - s3:
+          bucket: ${self:custom.BucketName}
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: uploaded/
+            - suffix: .csv
+resources:
+  Resources:
+    # DynamoDBProductsTable:
+    #   Type: AWS::DynamoDB::Table
+    #   Properties:
+    #     TableName: products
+    #     AttributeDefinitions:
+    #       - AttributeName: id
+    #         AttributeType: S
+    #     KeySchema:
+    #       # primary key
+    #       - AttributeName: id
+    #         KeyType: HASH
+    #     ProvisionedThroughput:
+    #       # restrict reading from the unit till 5 req per second
+    #       ReadCapacityUnits: 5
+    #       WriteCapacityUnits: 1
+    # DynamoDBStocksTable:
+    #   Type: AWS::DynamoDB::Table
+    #   Properties:
+    #     TableName: stocks
+    #     AttributeDefinitions:
+    #       - AttributeName: product_id
+    #         AttributeType: S
+    #     KeySchema:
+    #       # primary key
+    #       - AttributeName: product_id
+    #         KeyType: HASH
+    #     ProvisionedThroughput:
+    #       # restrict reading from the unit till 5 req per second
+    #       ReadCapacityUnits: 5
+    #       WriteCapacityUnits: 1
+    ImportServicePolicy:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: LambdasImportServiceAccess # required if you want to use 'serverless deploy --function' later on
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        Policies:
+          - PolicyName: ImportServiceAccess
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                    - s3:PutObjectAcl
+                    - s3:GetObject
+                    - s3:DeleteObject
+                  Resource:
+                    - arn:aws:s3:::${self:custom.BucketName}/uploaded/*
+                    - arn:aws:s3:::${self:custom.BucketName}/parsed/*
+    # SwaggerBucket:
+    #   Type: AWS::S3::Bucket
+    #   Properties:
+    #     BucketName: ${self:custom.openApiBucketName}
+    #     WebsiteConfiguration:
+    #       IndexDocument: index.html
+    #       ErrorDocument: index.html
+    #     OwnershipControls:
+    #       Rules:
+    #         - ObjectOwnership: ObjectWriter
+    #     PublicAccessBlockConfiguration:
+    #       BlockPublicAcls: false
+    # SwaggerParamsRequestValidator:
+    #   Type: AWS::ApiGateway::RequestValidator
+    #   Properties:
+    #     Name: ParameterRequestValidator
+    #     RestApiId:
+    #       Ref: ApiGatewayRestApi
+    #     ValidateRequestBody: false
+    #     ValidateRequestParameters: false
+    # SwaggerRootResource:
+    #   Type: AWS::ApiGateway::Resource
+    #   Properties:
+    #     ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+    #     RestApiId: !Ref ApiGatewayRestApi
+    #     PathPart: "openapi"
+    # SwaggerProxyResource:
+    #   Type: AWS::ApiGateway::Resource
+    #   Properties:
+    #     ParentId: !Ref SwaggerRootResource
+    #     RestApiId: !Ref ApiGatewayRestApi
+    #     PathPart: "{proxy+}"
+    # SwaggerRootMethod:
+    #   Type: AWS::ApiGateway::Method
+    #   Properties:
+    #     ResourceId: !Ref SwaggerRootResource
+    #     RestApiId: !Ref ApiGatewayRestApi
+    #     AuthorizationType: NONE
+    #     HttpMethod: ANY
+    #     Integration:
+    #       Type: HTTP_PROXY
+    #       IntegrationHttpMethod: ANY
+    #       Uri: http://${self:custom.openApiBucketName}.s3-website.${self:provider.region}.amazonaws.com
+    #       PassthroughBehavior: WHEN_NO_MATCH
+    # SwaggerProxyMethod:
+    #   Type: AWS::ApiGateway::Method
+    #   Properties:
+    #     ResourceId: !Ref SwaggerProxyResource
+    #     RestApiId: !Ref ApiGatewayRestApi
+    #     AuthorizationType: NONE
+    #     HttpMethod: ANY
+    #     RequestParameters:
+    #       method.request.path.proxy: true
+    #     RequestValidatorId:
+    #       Ref: SwaggerParamsRequestValidator
+    #     Integration:
+    #       Type: HTTP_PROXY
+    #       IntegrationHttpMethod: ANY
+    #       Uri: http://${self:custom.openApiBucketName}.s3-website.${self:provider.region}.amazonaws.com/{proxy}
+    #       PassthroughBehavior: WHEN_NO_MATCH
+    #       RequestParameters:
+    #         integration.request.path.proxy: "method.request.path.proxy"
+    # SwaggerS3BucketPolicy:
+    #   Type: AWS::S3::BucketPolicy
+    #   Properties:
+    #     Bucket:
+    #       Ref: SwaggerBucket
+    #     PolicyDocument:
+    #       Statement:
+    #         - Sid: "AllowPublicReadAccess"
+    #           Effect: Allow
+    #           Action: s3:GetObject
+    #           Resource: arn:aws:s3:::${self:custom.openApiBucketName}/*
+    #           Principal: "*"
+  Outputs:
+    # SwaggerBucketOutput:
+    #   Description: Products service API endpoint
+    # Value: !Ref SwaggerRootResource
