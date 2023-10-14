@@ -1,4 +1,4 @@
-import * as utils from '../utils'
+import * as utils from '../services/utils'
 
 describe('utils', () => {
   describe('convertKeysToCamelCase function', () => {

@@ -1,6 +1,6 @@
 import { type APIGatewayProxyEvent } from 'aws-lambda'
 import ProductAndStockDB from '../db/productAndStock'
-import { successResponse, executeHandlers, validateBySchemas } from '../utils'
+import { successResponse, executeHandlers, validateBySchemas } from '../services/utils'
 import { validateDataSchema } from '../models/product'
 
 const schemaValidation = {

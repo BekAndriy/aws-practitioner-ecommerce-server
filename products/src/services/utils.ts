@@ -1,9 +1,11 @@
-import { type APIGatewayProxyEvent, type Handler } from 'aws-lambda'
+import { type APIGatewayProxyEvent, type SQSEvent, type Handler } from 'aws-lambda'
 import { type AnyObjectSchema, type ValidationError } from 'yup'
 
 export type RequireAtLeastOne<T extends object> = {
   [K in keyof T]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<keyof T, K>>>;
 }[keyof T]
+
+export type PartialProperty<T extends object, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export interface Response {
   statusCode: number
@@ -96,13 +98,22 @@ export const validateBySchemas = (data: ValidateSchema | ValidateCallback, optio
   return null
 }
 
-export const logInputData = (event: APIGatewayProxyEvent): null => {
-  const { body, headers, httpMethod, path, queryStringParameters, pathParameters } = event
+const isAPIGatewayProxyEvent = (event: any): event is APIGatewayProxyEvent => !!(event.headers && event.httpMethod)
 
-  // task-4 All lambdas do console.log for each incoming requests and their arguments
-  console.log({
-    body, headers, httpMethod, path, queryStringParameters, pathParameters
-  })
+export const logInputData = (event: APIGatewayProxyEvent | SQSEvent): null => {
+  if (isAPIGatewayProxyEvent(event)) {
+    const { body, headers, httpMethod, path, queryStringParameters, pathParameters } = event
+
+    // task-4 All lambdas do console.log for each incoming requests and their arguments
+    console.log({
+      body, headers, httpMethod, path, queryStringParameters, pathParameters
+    })
+  } else {
+    console.log({
+      records: event.Records
+    })
+  }
+
   return null
 }
 

@@ -11,6 +11,9 @@
             "./tsconfig.json"
         ]
     },
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "rules": {},
     "overrides": [
         {

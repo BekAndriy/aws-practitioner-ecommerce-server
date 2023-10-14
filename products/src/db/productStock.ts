@@ -1,6 +1,6 @@
 import Base from './base'
 import { type ProductStock } from '../models/product'
-import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../utils'
+import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../services/utils'
 import { QueryCommand } from '@aws-sdk/lib-dynamodb'
 
 class ProductStockDB extends Base {

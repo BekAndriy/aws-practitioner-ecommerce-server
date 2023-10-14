@@ -1,0 +1,2 @@
+errorSubscriber: some-error-email@example.com
+successSubscriber: some-success-email@example.com

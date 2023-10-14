@@ -1,6 +1,6 @@
 import { type APIGatewayProxyEvent } from 'aws-lambda'
 import ProductStockDB from '../db/productStock'
-import { errorResponse } from '../utils'
+import { errorResponse } from '../services/utils'
 
 // queue middleware to validate product id
 // before should have a yup validation model for the required and uuid format handler

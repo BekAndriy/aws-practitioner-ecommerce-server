@@ -1,5 +1,5 @@
 import { type Handler } from 'aws-lambda'
-import { errorsHandler, mapArray } from '../utils'
+import { errorsHandler, mapArray } from '../services/utils'
 import ProductDB from '../db/product'
 import ProductStockDB from '../db/productStock'
 

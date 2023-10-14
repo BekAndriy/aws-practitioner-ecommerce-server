@@ -1,6 +1,6 @@
 import { PutCommand, DeleteCommand, BatchWriteCommand, ScanCommand, DynamoDBDocumentClient, type BatchWriteCommandInput, UpdateCommand, type UpdateCommandInput } from '@aws-sdk/lib-dynamodb'
 import { DynamoDBClient, TransactWriteItemsCommand, TransactGetItemsCommand, type TransactGetItem, type TransactWriteItem } from '@aws-sdk/client-dynamodb'
-import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../utils'
+import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../services/utils'
 
 // DB service singleton
 abstract class DB {
