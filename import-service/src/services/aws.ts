@@ -1,5 +1,6 @@
 import { CopyObjectCommand, DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
 
 const s3 = new S3Client({});
 
@@ -51,8 +52,24 @@ export const moveS3Objects = async (bucketName: string, sourceFolder: string, de
 
     await s3.send(new DeleteObjectCommand(deleteObjectParams));
 
-    console.log(`Moved ${sourceObjectKey} to ${destinationObjectKey}`);
   } catch (error) {
     console.error(`Error moving ${sourceObjectKey}: ${(error as Error).message}`);
+  }
+}
+
+const sqs = new SQSClient({});
+
+export const sqsSendMessage = async (sqsQueueUrl: string, body: string) => {
+  try {
+    const command = new SendMessageCommand({
+      QueueUrl: sqsQueueUrl,
+      DelaySeconds: 10,
+      MessageBody: body,
+    });
+
+    const response = await sqs.send(command);
+    return response;
+  } catch (error) {
+    console.error(`Error sending sqs message URL: ${sqsQueueUrl} | ${(error as Error).message}`);
   }
 }

@@ -11,8 +11,10 @@ provider:
   environment:
     DB_PRODUCTS_TABLE_NAME: !Ref DynamoDBProductsTable
     DB_STOCKS_TABLE_NAME: !Ref DynamoDBStocksTable
+    SQS_QUEUE_URL: !Ref CatalogItemsQueue
+    TOPIC_ARN: !Ref SNSProductTopic
   iam:
-    role: DynamoDBPolicy
+    role: ProductsServicePolicy
 
 plugins:
   - serverless-s3-deploy
@@ -27,6 +29,7 @@ custom:
           - source: openapi
             empty: true
             globs: "**/*"
+  snsSubscribers: ${file(./subscribers.yml)}
   serverless-s3-cleaner:
     buckets:
       - ${self:custom.openApiBucketName}
@@ -101,6 +104,22 @@ functions:
           path: /products/{id}
           method: GET
           cors: true
+  catalogBatchProcess:
+    handler: dist/src/handlers/catalogBatchProcess.handler
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - CatalogItemsQueue
+              - Arn
+          # delay for gathering messages before send
+          maximumBatchingWindow: 30
+          batchSize: 5
 
 resources:
   Resources:
@@ -134,10 +153,10 @@ resources:
           # restrict reading from the unit till 5 req per second
           ReadCapacityUnits: 5
           WriteCapacityUnits: 1
-    DynamoDBPolicy:
+    ProductsServicePolicy:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: LambdasDynamoDBAccess # required if you want to use 'serverless deploy --function' later on
+        RoleName: ProductsServicePolicyAccess # required if you want to use 'serverless deploy --function' later on
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
@@ -146,8 +165,10 @@ resources:
                 Service:
                   - lambda.amazonaws.com
               Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         Policies:
-          - PolicyName: dynamoDBAccess
+          - PolicyName: ProductServiceDynamoDBAccess
             PolicyDocument:
               Version: "2012-10-17"
               Statement:
@@ -160,6 +181,31 @@ resources:
                     - dynamodb:UpdateItem
                     - dynamodb:DeleteItem
                   Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/*"
+          - PolicyName: ProductServiceSQSAccess
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "sqs:GetQueueUrl"
+                    - "sqs:DeleteMessage"
+                    - "sqs:GetQueueAttributes"
+                    - "sqs:ReceiveMessage"
+                  Resource:
+                    Fn::Join:
+                      - " "
+                      - - Fn::GetAtt:
+                            - CatalogItemsQueue
+                            - Arn
+          - PolicyName: ProductServiceSNSAccess
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "sns:Publish"
+                  Resource: !Ref SNSProductTopic
+
     SwaggerBucket:
       Type: AWS::S3::Bucket
       Properties:
@@ -234,6 +280,34 @@ resources:
               Action: s3:GetObject
               Resource: arn:aws:s3:::${self:custom.openApiBucketName}/*
               Principal: "*"
+    CatalogItemsQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "CatalogItemsQueue"
+    SNSProductTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        Subscription:
+    # subscriber for success created products
+    SNSProductTopicSuccessSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: ${self:custom.snsSubscribers.successSubscriber}
+        Protocol: email
+        FilterPolicy:
+          productsStatus:
+            - success
+        TopicArn: !Ref SNSProductTopic
+    # subscriber for failed created products
+    SNSProductTopicErrorSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: ${self:custom.snsSubscribers.errorSubscriber}
+        Protocol: email
+        FilterPolicy:
+          productsStatus:
+            - error
+        TopicArn: !Ref SNSProductTopic
   Outputs:
     SwaggerBucketOutput:
       Description: Products service API endpoint

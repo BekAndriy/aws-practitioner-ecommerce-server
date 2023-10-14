@@ -1,8 +1,10 @@
 import { randomUUID } from 'crypto'
+import { type TransactWriteItem } from '@aws-sdk/client-dynamodb'
 import Base from './base'
 import ProductDB from './product'
 import ProductStockDB from './productStock'
-import { type Product, type ProductStock } from '../models/product'
+import { type MergedProduct, type Product, type ProductStock } from '../models/product'
+import { type PartialProperty } from '../services/utils'
 
 export default class ProductAndStockDB extends Base {
   private static _instance: ProductAndStockDB = null
@@ -22,46 +24,25 @@ export default class ProductAndStockDB extends Base {
 
   create(data: Omit<Product, 'id'> & Pick<ProductStock, 'count'>) {
     const id = randomUUID()
-    const { count, price, title, description } = data
-    return this.transactWriteItems([
-      {
-        Put: {
-          TableName: ProductDB.db.tableName,
-          Item: {
-            id: {
-              S: id
-            },
-            price: {
-              N: price.toString()
-            },
-            title: {
-              S: title
-            },
-            ...description
-              ? ({
-                description: {
-                  S: description
-                }
-              })
-              : {}
-          }
-        }
-      },
-      {
-        Put: {
-          TableName: ProductStockDB.db.tableName,
-          Item: {
-            product_id: {
-              S: id
-            },
-            count: {
-              N: count.toString()
-            }
-          }
-        }
-      }
-    ])
+    return this.transactWriteItems(this.getTransactionCreateItem({ ...data, id }))
       .then(() => id)
+  }
+
+  // up to 10 records as AWS doesn't allow to save more then 20 transactions at the request
+  createUpdateMany(records: Array<PartialProperty<MergedProduct, 'id'>>) {
+    const parsedRecords = records.map((record) => {
+      if (record.id) {
+        return [record.id, this.getTransactionsUpdateItem(record as MergedProduct)]
+      }
+      const id = randomUUID()
+      return [id, this.getTransactionCreateItem({ ...record, id })]
+    })
+
+    const createUpdateData = parsedRecords.map((record) => record[1]).flat() as TransactWriteItem[]
+
+    // return list of product ids
+    return this.transactWriteItems(createUpdateData)
+      .then(() => parsedRecords.map((record) => record[0]) as string[])
   }
 
   async delete(productId: string) {
@@ -90,9 +71,54 @@ export default class ProductAndStockDB extends Base {
       .then(() => true)
   }
 
-  async update(data: Product & Pick<ProductStock, 'count'>) {
+  async update(data: MergedProduct) {
+    return await this.transactWriteItems(this.getTransactionsUpdateItem(data))
+      .then(() => true)
+  }
+
+  async getItem(productId: string): Promise<MergedProduct | null> {
+    return await this.transactGetItemsItems([
+      {
+        Get: {
+          TableName: ProductDB.db.tableName,
+          Key: {
+            id: {
+              S: productId
+            }
+          }
+        }
+      },
+      {
+        Get: {
+          TableName: ProductStockDB.db.tableName,
+          Key: {
+            product_id: {
+              S: productId
+            }
+          }
+        }
+      }
+    ]).then((res) => {
+      const data = res?.Responses?.reduce((res, item) => item.Item
+        ? ({ ...res, ...item.Item })
+        : res, {}) || {}
+
+      // parse result to valid output format
+      const { id, title, description, count, price } = Object.fromEntries(
+        Object.entries(data)
+          .map(([key, value]) => [key, Object.values(value as object)[0]])
+      ) as MergedProduct
+      return id
+        ? {
+          id, title, description, count, price
+        }
+        : null
+    })
+  }
+
+  private getTransactionsUpdateItem(data: MergedProduct) {
     const { id, count, price, title, description = '' } = data
-    return await this.transactWriteItems([
+    return [
       {
         Update: {
           TableName: ProductDB.db.tableName,
@@ -131,47 +157,48 @@ export default class ProductAndStockDB extends Base {
           }
         }
       }
-    ])
-      .then(() => true)
+    ]
   }
 
-  async getItem(productId: string): Promise<(Product & Pick<ProductStock, 'count'>) | null> {
-    return await this.transactGetItemsItems([
+  private getTransactionCreateItem(data: MergedProduct) {
+    const { id, title, description, price, count } = data
+    return [
       {
-        Get: {
+        Put: {
           TableName: ProductDB.db.tableName,
-          Key: {
+          Item: {
             id: {
-              S: productId
-            }
+              S: id
+            },
+            price: {
+              N: price.toString()
+            },
+            title: {
+              S: title
+            },
+            ...description
+              ? ({
+                description: {
+                  S: description
+                }
+              })
+              : {}
           }
         }
       },
       {
-        Get: {
+        Put: {
           TableName: ProductStockDB.db.tableName,
-          Key: {
+          Item: {
             product_id: {
-              S: productId
+              S: id
+            },
+            count: {
+              N: count.toString()
             }
           }
         }
       }
-    ]).then((res) => {
-      const data = res?.Responses?.reduce((res, item) => item.Item
-        ? ({ ...res, ...item.Item })
-        : res, {}) || {}
-
-      // parse result to valid output format
-      const { id, title, description, count, price } = Object.fromEntries(
-        Object.entries(data)
-          .map(([key, value]) => [key, Object.values(value as object)[0]])
-      ) as Product & Pick<ProductStock, 'count'>
-      return id
-        ? {
-          id, title, description, count, price
-        }
-        : null
-    })
+    ]
   }
 }

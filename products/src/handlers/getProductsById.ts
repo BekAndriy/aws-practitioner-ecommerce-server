@@ -1,6 +1,6 @@
 import { type APIGatewayProxyEvent } from 'aws-lambda'
 import { type ProductStock, type Product } from '../models/product'
-import { errorResponse, executeHandlers, validateBySchemas } from '../utils'
+import { errorResponse, executeHandlers, validateBySchemas } from '../services/utils'
 import { validateIdSchema } from '../models/product'
 import ProductAndStockDB from '../db/productAndStock'
 
