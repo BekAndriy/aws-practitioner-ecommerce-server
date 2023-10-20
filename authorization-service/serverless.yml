@@ -1,0 +1,146 @@
+# contains base configurations for custom auth service
+service: phoneforyou-authorization-service
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  stage: dev
+  runtime: nodejs18.x
+  timeout: 15
+  memorySize: 512
+  region: eu-central-1
+
+plugins:
+  - serverless-dotenv-plugin
+
+custom:
+
+package:
+  individually: true
+  exclude:
+    - ./**
+
+functions:
+  BasicAuthorizer:
+    handler: dist/src/handlers/basicAuthorizer.handler
+    package:
+      include:
+        - dist/**
+      exclude:
+        - dist/package-lock.json
+resources:
+  Resources:
+    BasicAuthorizerPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName:
+          Fn::GetAtt:
+            # LambdaFunction - suffix is required for serverless framework
+            - BasicAuthorizerLambdaFunction
+            - Arn
+        Principal: apigateway.amazonaws.com
+    AuthorizationServicePolicy:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: AuthorizationServiceAccess # required if you want to use 'serverless deploy --function' later on
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - apigateway.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        UsernameConfiguration:
+          CaseSensitive: false
+        UsernameAttributes:
+          - email
+        DeletionProtection: INACTIVE
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: false
+            RequireUppercase: true
+            TemporaryPasswordValidityDays: 30
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        AutoVerifiedAttributes:
+          - email
+        VerificationMessageTemplate:
+          DefaultEmailOption: CONFIRM_WITH_CODE
+        UserPoolName: phoneforyou-user-pool-${self:provider.stage}
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Mutable: false
+            Required: true
+    UserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        UserPoolId: !Ref UserPool
+        Domain: phone-for-you-${self:provider.stage}-aaa
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        UserPoolId: !Ref UserPool
+        ClientName: user-pool-client-${self:provider.stage}
+        CallbackURLs:
+          # - http://localhost:3000/sign-up
+          # - http://localhost:3000
+          - https://d20glp57bxrxom.cloudfront.net
+          - https://d20glp57bxrxom.cloudfront.net/sign-up
+        LogoutURLs:
+          # - http://localhost:3000/sign-out
+          # - http://localhost:3000
+          - https://d20glp57bxrxom.cloudfront.net
+          - https://d20glp57bxrxom.cloudfront.net/sign-out
+        TokenValidityUnits:
+          AccessToken: days
+          IdToken: days
+          RefreshToken: days
+        RefreshTokenValidity: 7
+        AccessTokenValidity: 1
+        SupportedIdentityProviders:
+          - COGNITO
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - email
+          - phone
+          - openid
+          - profile
+        AllowedOAuthFlowsUserPoolClient: true
+
+  Outputs:
+    # public auth uri for other services
+    AuthorizerUri:
+      Value:
+        Fn::Join:
+          - ""
+          - - "arn:aws:apigateway:"
+            - !Ref AWS::Region
+            - ":lambda:path/2015-03-31/functions/"
+            - !GetAtt BasicAuthorizerLambdaFunction.Arn
+            - "/invocations"
+      Export:
+        Name: ${self:provider.stage}-AuthorizerUri
+    CognitoAuthorizer:
+      Value:
+        Fn::GetAtt:
+          - UserPool
+          - Arn
+      Export:
+        Name: ${self:provider.stage}-CognitoPoolArn
