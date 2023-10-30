@@ -1,12 +1,12 @@
-import { Controller, Get, Request, Post, UseGuards, HttpStatus } from '@nestjs/common';
-import { LocalAuthGuard, AuthService, JwtAuthGuard, BasicAuthGuard } from './auth';
+import { Controller, Get, Request, Post, UseGuards, HttpStatus, HttpException } from '@nestjs/common';
+import { LocalAuthGuard, AuthService, BasicAuthGuard } from './auth';
 
 @Controller()
 export class AppController {
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
-  @Get([ '', 'ping' ])
+  @Get(['', 'ping'])
   healthCheck(): any {
     return {
       statusCode: HttpStatus.OK,
@@ -14,17 +14,34 @@ export class AppController {
     };
   }
 
-  @UseGuards(LocalAuthGuard)
   @Post('api/auth/login')
   async login(@Request() req) {
-    const token = this.authService.login(req.user, 'basic');
+    const { email, password } = req.body;
+    const token = await this.authService.login(email, password);
 
-    return  {
+    if (!token) {
+      throw new HttpException('Email or password is invalid.', HttpStatus.BAD_REQUEST);
+    }
+
+    return {
       statusCode: HttpStatus.OK,
       message: 'OK',
       data: {
         ...token,
       },
+    };
+  }
+
+  @Post('api/auth/register')
+  async register(@Request() req) {
+    const success = await this.authService.register(req.body);
+    if (!success) {
+      throw new HttpException('Current email is already used.', HttpStatus.BAD_REQUEST);
+    }
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'OK',
+      data: {},
     };
   }
 

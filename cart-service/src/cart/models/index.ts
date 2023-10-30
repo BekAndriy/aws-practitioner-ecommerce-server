@@ -15,3 +15,8 @@ export type Cart = {
   id: string,
   items: CartItem[],
 }
+
+export interface UpdateCartItem {
+  productId: string;
+  count: number;
+}

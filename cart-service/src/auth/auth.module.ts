@@ -22,6 +22,6 @@ const { secret, expiresIn } = JWT_CONFIG;
     LocalStrategy,
     BasicStrategy,
   ],
-  exports: [ AuthService ],
+  exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

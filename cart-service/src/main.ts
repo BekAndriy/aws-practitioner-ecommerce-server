@@ -1,21 +1,17 @@
-import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
 
-import * as helmet from 'helmet';
-
-import { AppModule } from './app.module';
+import bootstrap from './bootstrap';
 
 const port = process.env.PORT || 4000;
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.enableCors({
-    origin: (req, callback) => callback(null, true),
+bootstrap()
+  .then((app) => {
+    app.enableCors({
+      origin: (req, callback) => callback(null, true),
+    });
+    app.use(helmet());
+    app.listen(port);
+  })
+  .then(() => {
+    console.log('App is running on %s port', port);
   });
-  app.use(helmet());
-
-  await app.listen(port);
-}
-bootstrap().then(() => {
-  console.log('App is running on %s port', port);
-});
