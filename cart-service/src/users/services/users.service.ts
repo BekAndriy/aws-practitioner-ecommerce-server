@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { v4 } from 'uuid';
-
 import { User } from '../models';
-import { PGDB } from 'src/pgdb';
+import { PGDB } from '../../pgdb';
 
 @Injectable()
 export class UsersService {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { UpdateCartItem } from '../models';
-import { PGDB } from 'src/pgdb';
-import { CartStatus } from 'src/pgdb/carts/model';
+import { PGDB } from '../../pgdb';
+import { CartStatus } from '../../pgdb/carts/model';
 
 @Injectable()
 export class CartService {

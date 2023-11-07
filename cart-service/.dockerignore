@@ -1,0 +1,25 @@
+# not needed as dependencies will be installed in the Docker stages
+node_modules
+
+# not necessary to process logs
+npm-debug.log
+
+# not needed as the build will be created in the Docker stages
+dist
+
+# hide configurations as they are not needed in the server
+.serverless
+.git
+.idea
+.elasticbeanstalk
+
+# unnecessary for instance 
+README.md
+
+# scripts are responsible for initialisation DB and aren't needed in the server
+# DB is the separate service
+scripts
+
+# tests are required only for development and CI\CD so can be excluded
+test
+*.spec.ts
