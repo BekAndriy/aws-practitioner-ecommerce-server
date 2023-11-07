@@ -5,7 +5,7 @@ import { OrderService } from '../order';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 
 import { CartService } from './services';
-import { OrderStatus } from 'src/pgdb/orders/model';
+import { OrderStatus } from '../pgdb/orders/model';
 
 @Controller('api/profile/cart')
 export class CartController {

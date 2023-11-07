@@ -1,5 +1,5 @@
 import serverlessExpress from '@vendia/serverless-express';
-import { Callback, Context, Handler } from 'aws-lambda';
+import { type Callback, type Context, type Handler } from 'aws-lambda';
 import bootstrap from './bootstrap';
 
 

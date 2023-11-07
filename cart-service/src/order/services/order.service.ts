@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import { PGDB } from 'src/pgdb';
-import { CartStatus } from 'src/pgdb/carts/model';
-import { CartItem } from 'src/pgdb/cart-items/model';
-import { OrderStatus, Order } from 'src/pgdb/orders/model';
+import { PGDB } from '../../pgdb';
+import { CartStatus } from '../../pgdb/carts/model';
+import { CartItem } from '../../pgdb/cart-items/model';
+import { OrderStatus, Order } from '../../pgdb/orders/model';
 
 @Injectable()
 export class OrderService {
