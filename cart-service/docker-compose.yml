@@ -13,3 +13,4 @@ services:
     command: node dist/main.js
     ports:
       - 80:4000
+      - 443:4000
